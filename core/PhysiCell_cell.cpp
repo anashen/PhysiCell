@@ -401,6 +401,14 @@ Cell::Cell()
 	
 	type = cell_defaults.type; 
 	type_name = cell_defaults.name; 
+
+	generation = 0;
+	int no_parent_ID = -1;
+
+	std::string str_tree_ID = std::to_string(ID) + "." + std::to_string(generation);
+	tree_ID = std::stod(str_tree_ID);
+	std::string str_parent__ID = std::to_string(no_parent_ID) + "." + std::to_string(generation);
+	parent_ID = std::stod(str_parent__ID);
 	
 	custom_data = cell_defaults.custom_data; 
 	parameters = cell_defaults.parameters; 
@@ -565,11 +573,24 @@ Cell* Cell::divide( )
 	child->copy_data( this );	
 	child->copy_function_pointers(this);
 	child->parameters = parameters;
+
+	child->generation = generation + 1;
+
+	auto str_tree_ID = std::to_string(child->ID) + "." + std::to_string(child->generation);
+	auto str_parent_ID = std::to_string(ID) + "." + std::to_string(generation);
+	child->tree_ID = std::stod(str_tree_ID);
+	child->parent_ID = std::stod(str_parent_ID);
 	
 	// evenly divide internalized substrates 
 	// if these are not actively tracked, they are zero anyway 
 	*internalized_substrates *= 0.5; 
-	*(child->internalized_substrates) = *internalized_substrates ; 
+	*(child->internalized_substrates) = *internalized_substrates; 
+
+	// update parent ID, generation, tree ID
+	parent_ID = tree_ID;
+	generation = generation + 1;
+	auto str_new_tree_ID = std::to_string(ID) + "." + std::to_string(generation);
+	tree_ID = std::stod(str_new_tree_ID);
 	
 	// The following is already performed by create_cell(). JULY 2017 ***
 	// child->register_microenvironment( get_microenvironment() );

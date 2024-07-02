@@ -168,9 +168,39 @@ void add_PhysiCell_cells_to_open_xml_pugi( pugi::xml_document& xml_dom, std::str
 			
 			pugi::xml_node node_temp1 = node_temp.append_child( "labels" ); 
 			
-			// ID,x,y,z,total volume
+			// ID,generation,tree_ID,parent_ID,x,y,z,total volume
 			node_temp1 = node_temp1.append_child( "label" ); 
 			node_temp1.append_child( pugi::node_pcdata ).set_value( "ID" ); 
+			attrib = node_temp1.append_attribute( "index" ); 
+			attrib.set_value( index ); 
+			attrib = node_temp1.append_attribute( "size" ); 
+			attrib.set_value( size ); 
+			node_temp1 = node_temp1.parent(); 
+			index += size; 
+
+			size = 1; 
+			node_temp1 = node_temp1.append_child( "label" );
+			node_temp1.append_child( pugi::node_pcdata ).set_value( "generation" ); 
+			attrib = node_temp1.append_attribute( "index" ); 
+			attrib.set_value( index ); 
+			attrib = node_temp1.append_attribute( "size" ); 
+			attrib.set_value( size ); 
+			node_temp1 = node_temp1.parent(); 
+			index += size; 
+
+			size = 1; 
+			node_temp1 = node_temp1.append_child( "label" );
+			node_temp1.append_child( pugi::node_pcdata ).set_value( "tree_ID" ); 
+			attrib = node_temp1.append_attribute( "index" ); 
+			attrib.set_value( index ); 
+			attrib = node_temp1.append_attribute( "size" ); 
+			attrib.set_value( size ); 
+			node_temp1 = node_temp1.parent(); 
+			index += size; 
+
+			size = 1; 
+			node_temp1 = node_temp1.append_child( "label" );
+			node_temp1.append_child( pugi::node_pcdata ).set_value( "parent_ID" ); 
 			attrib = node_temp1.append_attribute( "index" ); 
 			attrib.set_value( index ); 
 			attrib = node_temp1.append_attribute( "size" ); 
@@ -526,13 +556,13 @@ void add_PhysiCell_cells_to_open_xml_pugi( pugi::xml_document& xml_dom, std::str
 		
 		// next, create a matlab structure and save it!
 		
-		// order: ID,x,y,z,total volume, (same as BioFVM custom data, but instead of secretions ...)
+		// order: ID,generation,tree_ID,parent_ID,x,y,z,total volume, (same as BioFVM custom data, but instead of secretions ...)
 		// type, cycle model, current phase, elapsed time in phase, 
 		// nuclear volume, cytoplasmic volume, fluid fraction, calcified fraction, 
 		// orientation, polarity 
 		
 		int number_of_data_entries = (*all_cells).size(); 
-		int size_of_each_datum = 1 + 3 + 1  // ID, x,y,z, total_volume 
+		int size_of_each_datum = 1 + 1 + 1 + 1 + 3 + 1  // ID, generation, tree_ID, parent_ID, x,y,z, total_volume 
 			+1+1+1+1 // cycle information 
 			+1+1+1+1 // volume information 
 			+3+1 // orientation, polarity; 
@@ -585,9 +615,18 @@ void add_PhysiCell_cells_to_open_xml_pugi( pugi::xml_document& xml_dom, std::str
 		// storing data as cols (each column is a cell)
 		for( int i=0; i < number_of_data_entries ; i++ )
 		{
-			// ID, x,y,z, total_volume 
+			// ID, generation, tree_ID, parent_ID, x,y,z, total_volume 
 			double ID_temp = (double) (*all_cells)[i]->ID;
 			fwrite( (char*) &( ID_temp ) , sizeof(double) , 1 , fp ); 
+
+			double gen_temp = (double) (*all_cells)[i]->generation;
+			fwrite( (char*) &( gen_temp ) , sizeof(double) , 1 , fp ); 
+
+			double tree_id_temp = (double) (*all_cells)[i]->tree_ID;
+			fwrite( (char*) &( tree_id_temp ) , sizeof(double) , 1 , fp ); 
+
+			double parent_id_temp = (double) (*all_cells)[i]->parent_ID;
+			fwrite( (char*) &( parent_id_temp ) , sizeof(double) , 1 , fp ); 
 			
 			pCell = (*all_cells)[i]; 
 
@@ -694,6 +733,15 @@ void add_PhysiCell_cells_to_open_xml_pugi( pugi::xml_document& xml_dom, std::str
 		node = node.append_child( "cell" ); 
 		attrib = node.append_attribute( "ID" ); 
 		attrib.set_value(  (*all_cells)[i]->ID ); 
+
+		attrib = node.append_attribute( "generation" ); 
+		attrib.set_value(  (*all_cells)[i]->generation ); 
+
+		attrib = node.append_attribute( "tree_ID" ); 
+		attrib.set_value(  (*all_cells)[i]->tree_ID ); 
+
+		attrib = node.append_attribute( "parent_ID" ); 
+		attrib.set_value(  (*all_cells)[i]->parent_ID ); 
 		
 		node = node.append_child( "phenotype_dataset" ); 
 		node = node.append_child( "phenotype" ); // add a type? 
@@ -890,7 +938,37 @@ void add_PhysiCell_cells_to_open_xml_pugi_v2( pugi::xml_document& xml_dom, std::
 		data_start_indices.push_back( index ); 
 		cell_data_size += size; 
 		index += size; 
-		//					<label index="1" size="3">position</label>
+		// generation 			<label index="1" size="1">ID</label>
+		name = "generation"; 
+		size = 1; 
+		units="none";
+		data_names.push_back( name ); 
+		data_units.push_back(units); 
+		data_sizes.push_back( size ); 
+		data_start_indices.push_back( index ); 
+		cell_data_size += size; 
+		index += size; 
+		// tree_ID 				<label index="2" size="1">ID</label>
+		name = "tree_ID"; 
+		size = 1; 
+		units="none";
+		data_names.push_back( name ); 
+		data_units.push_back(units); 
+		data_sizes.push_back( size ); 
+		data_start_indices.push_back( index ); 
+		cell_data_size += size; 
+		index += size; 
+		// parent_ID 			<label index="3" size="1">ID</label>
+		name = "parent_ID"; 
+		size = 1; 
+		units="none";
+		data_names.push_back( name ); 
+		data_units.push_back(units); 
+		data_sizes.push_back( size ); 
+		data_start_indices.push_back( index ); 
+		cell_data_size += size; 
+		index += size; 
+		//					<label index="4" size="3">position</label>
 		name = "position"; 
 		size = 3; 
 		units="microns";
@@ -900,7 +978,7 @@ void add_PhysiCell_cells_to_open_xml_pugi_v2( pugi::xml_document& xml_dom, std::
 		data_start_indices.push_back( index ); 
 		cell_data_size += size; 
 		index += size; 
-		//					<label index="4" size="1">total_volume</label>
+		//					<label index="7" size="1">total_volume</label>
 		name = "total_volume"; 
 		units = "cubic microns"; 
 		size = 1; 
@@ -910,7 +988,7 @@ void add_PhysiCell_cells_to_open_xml_pugi_v2( pugi::xml_document& xml_dom, std::
 		data_start_indices.push_back( index ); 
 		cell_data_size += size; 
 		index += size; 
-		//					<label index="5" size="1">cell_type</label>
+		//					<label index="8" size="1">cell_type</label>
 		name = "cell_type"; 
 		units = "none"; 
 		size = 1; 
@@ -920,7 +998,7 @@ void add_PhysiCell_cells_to_open_xml_pugi_v2( pugi::xml_document& xml_dom, std::
 		data_start_indices.push_back( index ); 
 		cell_data_size += size; 
 		index += size; 		
-		//					<label index="6" size="1">cycle_model</label>
+		//					<label index="9" size="1">cycle_model</label>
 		name = "cycle_model"; 
 		units = "none"; 
 		size = 1; 
@@ -930,7 +1008,7 @@ void add_PhysiCell_cells_to_open_xml_pugi_v2( pugi::xml_document& xml_dom, std::
 		data_start_indices.push_back( index ); 
 		cell_data_size += size; 
 		index += size; 		
-		//					<label index="7" size="1">current_phase</label>
+		//					<label index="10" size="1">current_phase</label>
 		name = "current_phase"; 
 		units = "none"; 
 		size = 1; 
@@ -940,7 +1018,7 @@ void add_PhysiCell_cells_to_open_xml_pugi_v2( pugi::xml_document& xml_dom, std::
 		data_start_indices.push_back( index ); 
 		cell_data_size += size; 
 		index += size; 		
-		//					<label index="8" size="1">elapsed_time_in_phase</label>
+		//					<label index="11" size="1">elapsed_time_in_phase</label>
 		name = "elapsed_time_in_phase"; 
 		units = "min"; 
 		size = 1; 
@@ -950,7 +1028,7 @@ void add_PhysiCell_cells_to_open_xml_pugi_v2( pugi::xml_document& xml_dom, std::
 		data_start_indices.push_back( index ); 
 		cell_data_size += size; 
 		index += size; 		
-		//					<label index="9" size="1">nuclear_volume</label>
+		//					<label index="12" size="1">nuclear_volume</label>
 		name = "nuclear_volume"; 
 		units = "cubic microns"; 
 		size = 1; 
@@ -960,7 +1038,7 @@ void add_PhysiCell_cells_to_open_xml_pugi_v2( pugi::xml_document& xml_dom, std::
 		data_start_indices.push_back( index ); 
 		cell_data_size += size; 
 		index += size; 				
-		//					<label index="10" size="1">cytoplasmic_volume</label>
+		//					<label index="13" size="1">cytoplasmic_volume</label>
 		name = "cytoplasmic_volume"; 
 		units = "cubic microns"; 
 		size = 1; 
@@ -970,7 +1048,7 @@ void add_PhysiCell_cells_to_open_xml_pugi_v2( pugi::xml_document& xml_dom, std::
 		data_start_indices.push_back( index ); 
 		cell_data_size += size; 
 		index += size; 		
-		//					<label index="11" size="1">fluid_fraction</label>
+		//					<label index="14" size="1">fluid_fraction</label>
 		name = "fluid_fraction"; 
 		units = "none"; 
 		size = 1; 
@@ -980,7 +1058,7 @@ void add_PhysiCell_cells_to_open_xml_pugi_v2( pugi::xml_document& xml_dom, std::
 		data_start_indices.push_back( index ); 
 		cell_data_size += size; 
 		index += size; 		
-		//					<label index="12" size="1">calcified_fraction</label>
+		//					<label index="15" size="1">calcified_fraction</label>
 		name = "calcified_fraction"; 
 		units = "none"; 
 		size = 1; 
@@ -990,7 +1068,7 @@ void add_PhysiCell_cells_to_open_xml_pugi_v2( pugi::xml_document& xml_dom, std::
 		data_start_indices.push_back( index ); 
 		cell_data_size += size; 
 		index += size; 		
-		//					<label index="13" size="3">orientation</label>
+		//					<label index="16" size="3">orientation</label>
 		name = "orientation"; 
 		units = "none"; 
 		size = 3; 
@@ -1000,7 +1078,7 @@ void add_PhysiCell_cells_to_open_xml_pugi_v2( pugi::xml_document& xml_dom, std::
 		data_start_indices.push_back( index ); 
 		cell_data_size += size; 
 		index += size; 		
-		//					<label index="16" size="1">polarity</label>
+		//					<label index="19" size="1">polarity</label>
 		name = "polarity"; 
 		units = "none"; 
 		size = 1; 
@@ -1753,6 +1831,15 @@ void add_PhysiCell_cells_to_open_xml_pugi_v2( pugi::xml_document& xml_dom, std::
 
 		// name = "ID"; 
 		dTemp = (double) pCell->ID;
+		std::fwrite( &( dTemp ) , sizeof(double) , 1 , fp ); 
+		// name = "generation"; 
+		dTemp = (double) pCell->generation;
+		std::fwrite( &( dTemp ) , sizeof(double) , 1 , fp ); 
+		// name = "tree_ID"; 
+		dTemp = (double) pCell->tree_ID;
+		std::fwrite( &( dTemp ) , sizeof(double) , 1 , fp ); 
+		// name = "parent_ID"; 
+		dTemp = (double) pCell->parent_ID;
 		std::fwrite( &( dTemp ) , sizeof(double) , 1 , fp ); 
 		// name = "position";    NOTE very different syntax for writing vectors!
         std::fwrite( pCell->position.data() , sizeof(double) , 3 , fp );

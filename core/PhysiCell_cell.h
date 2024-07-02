@@ -170,6 +170,10 @@ class Cell : public Basic_Agent
 		
  public:
 	std::string type_name; 
+
+	int generation;
+	double tree_ID;
+	double parent_ID;
  
 	Custom_Cell_Data custom_data;
 	Cell_Parameters parameters;
