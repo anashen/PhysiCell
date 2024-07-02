@@ -1,5 +1,5 @@
 VERSION := $(shell grep . VERSION.txt | cut -f1 -d:)
-PROGRAM_NAME := interaction_demo
+PROGRAM_NAME := heterogeneity
 
 CC := g++
 # CC := g++-mp-7 # typical macports compiler name
@@ -101,7 +101,7 @@ PhysiCell_custom.o: ./core/PhysiCell_custom.cpp
 	
 PhysiCell_constants.o: ./core/PhysiCell_constants.cpp
 	$(COMPILE_COMMAND) -c ./core/PhysiCell_constants.cpp 
-
+	
 PhysiCell_signal_behavior.o: ./core/PhysiCell_signal_behavior.cpp
 	$(COMPILE_COMMAND) -c ./core/PhysiCell_signal_behavior.cpp 
 
